@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"io"
 	"net"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
-
-	"apibox.club/utils"
+	"unicode/utf8"
+    "apibox.club/utils"
 	"github.com/gorilla/websocket"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -239,6 +240,7 @@ func SSHWebSocketHandler(w http.ResponseWriter, r *http.Request) {
 					done <- true
 				}()
 				rbuf := make([]byte, 1024)
+				buf := []byte{}
 				for {
 					n, err := channel.Read(rbuf)
 
@@ -250,7 +252,14 @@ func SSHWebSocketHandler(w http.ResponseWriter, r *http.Request) {
 						return
 					}
 					if n > 0 {
-						err = ws.WriteMessage(websocket.TextMessage, rbuf[:n])
+						buf = append(buf, rbuf[0:n]...)
+						if utf8.Valid(buf) {
+							err = ws.WriteMessage(websocket.TextMessage, buf)
+							buf = []byte{}
+						}else if len(buf) > 64 * 1024{
+							buf = []byte{}
+							continue
+						}
 						if err != nil {
 							apibox.Log_Err(err)
 							return
