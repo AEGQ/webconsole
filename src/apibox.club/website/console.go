@@ -257,10 +257,11 @@ func SSHWebSocketHandler(w http.ResponseWriter, r *http.Request) {
 						buf = append(buf, rbuf[0:n]...)
 						if utf8.Valid(buf) {
 							err = ws.WriteMessage(websocket.TextMessage, buf)
+							buf = []byte{}
 						} else if len(buf) > 64*1024 {
 							err = ws.WriteMessage(websocket.TextMessage, []byte("\n \033[31m 警告: 非纯文本，无法正常显示 :( \033[0m \n"))
+							buf = []byte{}
 						}
-						buf = []byte{}
 						if err != nil {
 							apibox.Log_Err(err)
 							return
