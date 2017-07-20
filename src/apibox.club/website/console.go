@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"io"
 	"net"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 	"unicode/utf8"
-    "apibox.club/utils"
+
+	"apibox.club/utils"
 	"github.com/gorilla/websocket"
 	gossh "golang.org/x/crypto/ssh"
 )
@@ -257,8 +257,8 @@ func SSHWebSocketHandler(w http.ResponseWriter, r *http.Request) {
 							err = ws.WriteMessage(websocket.TextMessage, buf)
 							buf = []byte{}
 						}else if len(buf) > 64 * 1024{
+							err = ws.WriteMessage(websocket.TextMessage, []byte("\n \033[31m 警告: 非纯文本，无法正常显示 :( \033[0m \n"))
 							buf = []byte{}
-							continue
 						}
 						if err != nil {
 							apibox.Log_Err(err)
